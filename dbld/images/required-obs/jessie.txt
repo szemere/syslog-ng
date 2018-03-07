@@ -1,1 +1,3 @@
 python-pep8
+libbson-dev
+libmongoc-dev

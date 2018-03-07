@@ -11,3 +11,4 @@ openjdk-7-jdk
 # other tools
 
 # debian packaging tools
+librabbitmq-dev

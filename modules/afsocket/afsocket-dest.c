@@ -138,7 +138,6 @@ afsocket_dd_stats_instance(AFSocketDestDriver *self)
 }
 
 static gboolean afsocket_dd_connected(AFSocketDestDriver *self);
-static void afsocket_dd_reconnect(AFSocketDestDriver *self);
 static void afsocket_dd_try_connect(AFSocketDestDriver *self);
 static gboolean afsocket_dd_setup_connection(AFSocketDestDriver *self);
 
@@ -166,7 +165,7 @@ afsocket_dd_start_watches(AFSocketDestDriver *self)
   iv_fd_register(&self->connect_fd);
 }
 
-static void
+void
 afsocket_dd_stop_watches(AFSocketDestDriver *self)
 {
   main_loop_assert_main_thread();
@@ -262,6 +261,15 @@ error_reconnect:
   return FALSE;
 }
 
+void
+afsocket_connected_with_fd(AFSocketDestDriver *self, gint fd)
+{
+  afsocket_dd_stop_watches(self);
+  self->fd = fd;
+  afsocket_dd_connected(self);
+}
+
+
 static gboolean
 afsocket_dd_start_connect(AFSocketDestDriver *self)
 {
@@ -332,7 +340,7 @@ _dd_reconnect_with_current_addresses(AFSocketDestDriver *self)
   _dd_reconnect(self, FALSE);
 }
 
-static void
+void
 afsocket_dd_reconnect(AFSocketDestDriver *self)
 {
   _dd_reconnect_with_setup_addresses(self);

@@ -60,6 +60,7 @@ typedef struct _AFInetDestDriverTLSVerifyData
 } AFInetDestDriverTLSVerifyData;
 
 static gint _determine_port(const AFInetDestDriver *self);
+static gchar *_current_server_candidate_hostname(AFInetDestDriver *self);
 
 void
 afinet_dd_set_localip(LogDriver *s, gchar *ip)
@@ -228,6 +229,17 @@ _afinet_dd_stop_failback_handlers(AFInetDestDriver *self)
 }
 
 static void
+_afinet_dd_hand_over_connection_to_afsocket(AFInetDestDriver *self)
+{
+  self->successfull_probes_received = 0;
+  self->current_server_candidate = g_list_first(self->server_candidates);
+  self->hostname = _current_server_candidate_hostname(self);
+  afsocket_dd_connected_with_fd(&self->super, self->failback_fd.fd, self->primary_addr);
+  self->primary_addr = NULL;
+  self->failback_fd.fd = -1;
+}
+
+static void
 _afinet_dd_tcp_probe_succeded(AFInetDestDriver *self)
 {
   self->successfull_probes_received++;
@@ -238,14 +250,11 @@ _afinet_dd_tcp_probe_succeded(AFInetDestDriver *self)
   if (self->successfull_probes_received >= self->successfull_probes_required)
     {
       msg_notice("Primary server seems to be stable, reconnecting to primary server");
-      self->successfull_probes_received = 0;
-      self->current_server_candidate = NULL;
-      afsocket_connected_with_fd(&self->super, self->failback_fd.fd);
-      self->failback_fd.fd = -1;
+      _afinet_dd_hand_over_connection_to_afsocket(self);
     }
   else
     {
-       close(self->failback_fd.fd);
+      close(self->failback_fd.fd);
       _afinet_dd_start_failback_timer(self);
     }
 }
@@ -334,7 +343,8 @@ _afinet_dd_failback_timer_elapsed(void *cookie)
     }
   g_sockaddr_set_port(self->primary_addr, _determine_port(self));
 
-  if (!transport_mapper_open_socket(self->super.transport_mapper, self->super.socket_options, self->super.bind_addr, AFSOCKET_DIR_SEND, &self->failback_fd.fd))
+  if (!transport_mapper_open_socket(self->super.transport_mapper, self->super.socket_options, self->super.bind_addr,
+                                    AFSOCKET_DIR_SEND, &self->failback_fd.fd))
     {
       msg_error("Error creating socket for tcp-probe the primary server",
                 evt_tag_error(EVT_TAG_OSERROR));

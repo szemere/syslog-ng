@@ -60,7 +60,7 @@ typedef struct _AFInetDestDriverTLSVerifyData
 } AFInetDestDriverTLSVerifyData;
 
 static gint _determine_port(const AFInetDestDriver *self);
-static gchar *_current_server_candidate_hostname(AFInetDestDriver *self);
+static const gchar *_current_server_candidate_hostname(AFInetDestDriver *self);
 
 void
 afinet_dd_set_localip(LogDriver *s, gchar *ip)
@@ -233,7 +233,7 @@ _afinet_dd_hand_over_connection_to_afsocket(AFInetDestDriver *self)
 {
   self->successfull_probes_received = 0;
   self->current_server_candidate = g_list_first(self->server_candidates);
-  self->hostname = _current_server_candidate_hostname(self);
+  self->hostname = (char *)_current_server_candidate_hostname(self);
   afsocket_dd_connected_with_fd(&self->super, self->failback_fd.fd, self->primary_addr);
   self->primary_addr = NULL;
   self->failback_fd.fd = -1;
@@ -368,75 +368,91 @@ _afinet_dd_init_failback_handlers(AFInetDestDriver *s)
   self->failback_fd.handler_out = (void (*)(void *)) _afinet_dd_handle_tcp_probe_socket;
 }
 
-static gchar *
+static const gchar *
 _current_server_candidate_hostname(AFInetDestDriver *self)
 {
-  return (gchar *)self->current_server_candidate->data;
+  return (const gchar *)self->current_server_candidate->data;
 }
 
-static void
-_get_next_with_failback(AFInetDestDriver *self)
+static GList *
+_primary(AFInetDestDriver *self) //TODO: pass GList
 {
-  if (self->current_server_candidate == g_list_first(self->server_candidates))
+  return g_list_first(self->server_candidates);
+}
+
+static gboolean
+_is_primary(AFInetDestDriver *self) //TODO: pass GList
+{
+  return (self->current_server_candidate == _primary(self));
+}
+
+static gboolean
+_is_stepped_from_primary(AFInetDestDriver *self) //TODO: pass GList
+{
+  return (g_list_previous(self->current_server_candidate) == _primary(self));
+}
+
+static const gchar *
+_init_current_server_candidate(AFInetDestDriver *self)
+{
+  self->current_server_candidate = self->is_failback_mode ? g_list_next(_primary(self)) : _primary(self);
+  const gchar *hostname = _current_server_candidate_hostname(self);
+
+  if (_is_primary(self))
+    {
+      msg_warning("Last failover server reached, trying the original host again",
+                  evt_tag_str("host", hostname),
+                  log_pipe_location_tag(&self->super.super.super.super));
+    }
+  else
+    {
+      msg_warning("2B/3C Last failover server reached, trying with the first failover again",
+                  evt_tag_str("host", hostname),
+                  log_pipe_location_tag(&self->super.super.super.super));
+    }
+
+  return hostname;
+}
+
+static const gchar *
+_next_current_server_candidate(AFInetDestDriver *self)
+{
+  const gchar *hostname = _current_server_candidate_hostname(self);
+
+  if (self->is_failback_mode && _is_stepped_from_primary(self))
     {
       _afinet_dd_start_failback_timer(self);
-      self->current_server_candidate = g_list_next(self->current_server_candidate);
       msg_warning("2/3A Current server is inaccessible, sending the messages to the next failover server",
-                  evt_tag_str("host", (const gchar *)_current_server_candidate_hostname(self)),
+                  evt_tag_str("host", hostname),
                   log_pipe_location_tag(&self->super.super.super.super));
+      return hostname;
     }
-  else
-    {
-      self->current_server_candidate = g_list_next(self->current_server_candidate);
-      if (!self->current_server_candidate)
-        {
-          self->current_server_candidate = g_list_nth(self->server_candidates, 1);
-          msg_warning("2B/3C Last failover server reached, trying the original host again",
-                      evt_tag_str("host", (const gchar *)_current_server_candidate_hostname(self)),
-                      log_pipe_location_tag(&self->super.super.super.super));
-        }
-    }
+
+  msg_warning("Current server is inaccessible, sending the messages to the next failover server",
+              evt_tag_str("current", self->hostname),
+              evt_tag_str("failover", hostname),
+              log_pipe_location_tag(&self->super.super.super.super));
+
+  return hostname; //TODO: shouldn't we update self->hostname here???
 }
 
-static void
-_get_next_without_failback(AFInetDestDriver *self)
+static const gchar *
+_step_current_server_candidate(AFInetDestDriver *self)
 {
-  self->current_server_candidate = g_list_next(self->current_server_candidate);
   if (!self->current_server_candidate)
     {
-      self->current_server_candidate = g_list_first(self->server_candidates);
-      msg_warning("Last failover server reached, trying the original host again",
-                  evt_tag_str("host", (const gchar *)_current_server_candidate_hostname(self)),
-                  log_pipe_location_tag(&self->super.super.super.super));
-    }
-  else
-    {
-      msg_warning("Current server is inaccessible, sending the messages to the next failover server",
-                  evt_tag_str("current", self->hostname),
-                  evt_tag_str("failover", (const gchar *)_current_server_candidate_hostname(self)),
-                  log_pipe_location_tag(&self->super.super.super.super));
-    }
-}
-
-
-static gchar *
-_get_next_destination_candidate(AFInetDestDriver *self)
-{
-  if (!self->server_candidates)
-    return self->hostname;
-
-  if (!self->current_server_candidate)
-    {
-      self->current_server_candidate = g_list_first(self->server_candidates);
+      self->current_server_candidate = _primary(self);
       return _current_server_candidate_hostname(self);
     }
 
-  if (self->is_failback_mode)
-    _get_next_with_failback(self);
-  else
-    _get_next_without_failback(self);
+  self->current_server_candidate = g_list_next(self->current_server_candidate);
 
-  return _current_server_candidate_hostname(self);
+  if (!self->current_server_candidate)
+    {
+      return _init_current_server_candidate(self);
+    }
+
+  return _next_current_server_candidate(self);
 }
 
 static LogWriter *
@@ -473,10 +489,19 @@ _determine_port(const AFInetDestDriver *self)
   return port;
 }
 
+static gboolean
+_is_failover_used(AFInetDestDriver *self)
+{
+  return (self->server_candidates != NULL);
+}
+
 static void
 _setup_next_hostname(AFInetDestDriver *self)
 {
-  self->hostname = _get_next_destination_candidate(self);
+  if (!_is_failover_used(self))
+    return;
+
+  self->hostname = (char *) _step_current_server_candidate(self);
 }
 
 static gboolean

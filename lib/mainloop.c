@@ -262,13 +262,10 @@ main_loop_reload_config_apply(gpointer user_data)
       goto finish;
     }
 
-  /* this is already running with the new config in place */
-  app_post_config_loaded();
-  msg_notice("Configuration reload request received, reloading configuration");
-
 finish:
   self->new_config = NULL;
   self->old_config = NULL;
+  app_post_config_loaded();
 
   return;
 }
@@ -287,6 +284,7 @@ main_loop_reload_config_initiate(gpointer user_data)
       return;
     }
 
+  msg_notice("Configuration reload request received, reloading configuration");
   service_management_publish_status("Reloading configuration");
 
   self->old_config = self->current_configuration;

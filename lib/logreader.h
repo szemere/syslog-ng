@@ -28,6 +28,9 @@
 #include "logsource.h"
 #include "logproto/logproto-server.h"
 #include "poll-events.h"
+#include "logmsg/tags.h"
+
+#define TRIMMED_TAG_NAME "trimmed"
 
 /* flags */
 #define LR_KERNEL          0x0002
@@ -46,6 +49,7 @@ typedef struct _LogReaderOptions
   gint fetch_limit;
   const gchar *group_name;
   gboolean check_hostname;
+  LogTagId trimmed_tag_id;
 } LogReaderOptions;
 
 typedef struct _LogReader LogReader;

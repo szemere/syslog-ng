@@ -31,6 +31,7 @@ typedef struct _LogTransportAuxData
   GSockAddr *peer_addr;
   gchar data[1024];
   gsize end_ptr;
+  gboolean trimmed;
 } LogTransportAuxData;
 
 static inline void
@@ -74,5 +75,4 @@ log_transport_aux_data_set_peer_addr_ref(LogTransportAuxData *self, GSockAddr *p
 void log_transport_aux_data_add_nv_pair(LogTransportAuxData *self, const gchar *name, const gchar *value);
 void log_transport_aux_data_foreach(LogTransportAuxData *self, void (*func)(const gchar *, const gchar *, gsize,
                                     gpointer), gpointer user_data);
-
 #endif

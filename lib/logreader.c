@@ -387,6 +387,13 @@ log_reader_process_handshake(LogReader *self)
   return 0;
 }
 
+static void
+_log_reader_process_tags(LogReader * self, LogTransportAuxData *aux, LogMessage *m)
+{
+  if (aux->trimmed)
+    log_msg_set_tag_by_id(m, self->options->trimmed_tag_id);
+};
+
 static gboolean
 log_reader_handle_line(LogReader *self, const guchar *line, gint length, LogTransportAuxData *aux)
 {
@@ -402,6 +409,7 @@ log_reader_handle_line(LogReader *self, const guchar *line, gint length, LogTran
   log_msg_refcache_start_producer(m);
 
   log_transport_aux_data_foreach(aux, _add_aux_nvpair, m);
+  _log_reader_process_tags(self, aux, m);
 
   log_source_post(&self->super, m);
   log_msg_refcache_stop();
@@ -737,6 +745,9 @@ log_reader_options_init(LogReaderOptions *options, GlobalConfig *cfg, const gcha
     options->parse_options.flags |= LP_ASSUME_UTF8;
   if (cfg->threaded)
     options->flags |= LR_THREADED;
+
+  options->trimmed_tag_id = log_tags_get_by_name(TRIMMED_TAG_NAME);
+
   options->initialized = TRUE;
 }
 

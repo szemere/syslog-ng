@@ -281,6 +281,7 @@ log_proto_framed_server_fetch(LogProtoServer *s, const guchar **msg, gsize *msg_
               self->state = LPFSS_CONSUME_TRIMMED;
               self->half_message_in_buffer = TRUE;
               self->buffer_pos = self->buffer_end = 0;
+              aux->trimmed = TRUE;
               return LPS_SUCCESS;
             }
           self->state = LPFSS_TRIM_MESSAGE_READ;

@@ -1397,11 +1397,19 @@ _initialize_pipes(CfgTree *self)
   return TRUE;
 }
 
+static _optimize_filters(CfgTree *self)
+{
+  msg_info("Filter optimization begin");
+}
+
 gboolean
 cfg_tree_start(CfgTree *self)
 {
   if (!cfg_tree_compile(self))
     return FALSE;
+
+  if (self->cfg->optimize_filters)
+    _optimize_filters(self);
 
   if (!_initialize_pipes(self))
     return FALSE;

@@ -77,7 +77,6 @@ struct _GlobalConfig
   gint flush_lines;
   gint mark_mode;
   gboolean threaded;
-  gboolean optimize_filters;
   gboolean pass_unix_credentials;
   gboolean chain_hostnames;
   gboolean keep_hostname;

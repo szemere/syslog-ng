@@ -60,7 +60,7 @@ fop_free(FilterExprNode *s)
 static void
 _traversal(FilterExprNode *s, gint indent)
 {
-  printf("%*s\n", indent+2, s->type);
+  printf("%*s%s\n", indent, "|", s->type);
   FilterOp *self = (FilterOp *) s;
   self->left->traversal(self->left, indent + 5);
   self->right->traversal(self->right, indent + 5);

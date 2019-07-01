@@ -71,6 +71,20 @@ filter_netmask_eval(FilterExprNode *s, LogMessage **msgs, gint num_msg)
   return res ^ s->comp;
 }
 
+static void
+_netmask_traversal(FilterExprNode *s, gint indent)
+{
+  FilterNetmask *self = (FilterNetmask *) s;
+  char buf[64];
+
+  if (&self->address)
+    inet_ntop(AF_INET, &self->address, buf, sizeof(buf));
+  else
+    strncpy(buf, "none", sizeof(buf));
+
+  printf("%*s%s-%s\n", indent, "|", "netmask", buf);
+}
+
 FilterExprNode *
 filter_netmask_new(const gchar *cidr)
 {
@@ -105,5 +119,6 @@ filter_netmask_new(const gchar *cidr)
     }
   self->address.s_addr &= self->netmask.s_addr;
   self->super.eval = filter_netmask_eval;
+  self->super.traversal = _netmask_traversal;
   return &self->super;
 }

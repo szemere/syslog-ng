@@ -113,6 +113,13 @@ filter_re_compile_pattern(FilterExprNode *s, GlobalConfig *cfg, const gchar *re,
 }
 
 static void
+_re_traversal(FilterExprNode *s, gint indent)
+{
+  FilterRE *self = (FilterRE *)s;
+  printf("%*s%s(%s)\n", indent, "|", "regexp", self->matcher->pattern);
+}
+
+static void
 filter_re_init_instance(FilterRE *self, NVHandle value_handle)
 {
   filter_expr_node_init_instance(&self->super);
@@ -121,6 +128,7 @@ filter_re_init_instance(FilterRE *self, NVHandle value_handle)
   self->super.eval = filter_re_eval;
   self->super.free_fn = filter_re_free;
   self->super.type = "regexp";
+  self->super.traversal = _re_traversal;
   log_matcher_options_defaults(&self->matcher_options);
   self->matcher_options.flags |= LMF_MATCH_ONLY;
 }

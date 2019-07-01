@@ -130,9 +130,9 @@ filter_call_free(FilterExprNode *s)
 static void
 _traversal(FilterExprNode *s, gint indent)
 {
-  printf("%*s\n", indent, s->type);
+  printf("%*s%s\n", indent, "|", s->type);
   FilterCall *self = (FilterCall *)s;
-  self->filter_expr->traversal(self->filter_expr, indent + 10);
+  self->filter_expr->traversal(self->filter_expr, indent + 5);
 }
 
 FilterExprNode *

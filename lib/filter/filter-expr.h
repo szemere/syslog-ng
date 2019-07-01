@@ -67,7 +67,9 @@ void filter_expr_unref(FilterExprNode *self);
 static void
 _poc(FilterExprNode *self)
 {
+  printf("------------------------------------------\n");
   self->traversal(self,0);
+  printf("------------------------------------------\n");
 }
 
 #endif

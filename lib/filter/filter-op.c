@@ -58,11 +58,21 @@ fop_free(FilterExprNode *s)
 }
 
 static void
+_traversal(FilterExprNode *s, gint indent)
+{
+  printf("%*s\n", indent+2, s->type);
+  FilterOp *self = (FilterOp *) s;
+  self->left->traversal(self->left, indent + 5);
+  self->right->traversal(self->right, indent + 5);
+}
+
+static void
 fop_init_instance(FilterOp *self)
 {
   filter_expr_node_init_instance(&self->super);
   self->super.init = fop_init;
   self->super.free_fn = fop_free;
+  self->super.traversal = _traversal;
 }
 
 static gboolean

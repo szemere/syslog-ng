@@ -38,6 +38,8 @@ log_filter_pipe_init(LogPipe *s)
   if (!filter_expr_init(self->expr, cfg))
     return FALSE;
 
+  _poc(self->expr);
+
   if (!self->name)
     self->name = cfg_tree_get_rule_name(&cfg->tree, ENC_FILTER, s->expr_node);
 
@@ -123,5 +125,6 @@ log_filter_pipe_new(FilterExprNode *expr, GlobalConfig *cfg)
   self->super.free_fn = log_filter_pipe_free;
   self->super.clone = log_filter_pipe_clone;
   self->expr = expr;
+
   return &self->super;
 }

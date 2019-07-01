@@ -23,16 +23,23 @@
  */
 
 #include "filter/filter-expr.h"
-#include "messages.h"
+#include "stdio.h"
 
 /****************************************************************
  * Filter expression nodes
  ****************************************************************/
 
 void
+filter_expr_node_base_traversal(FilterExprNode *self, gint indent)
+{
+  printf("%*s%s\n", indent, "-", self->type);
+}
+
+void
 filter_expr_node_init_instance(FilterExprNode *self)
 {
   self->ref_cnt = 1;
+  self->traversal = filter_expr_node_base_traversal;
 }
 
 /*

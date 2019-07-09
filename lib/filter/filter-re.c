@@ -232,19 +232,42 @@ filter_match_eval_against_trivial_template(FilterMatch *self, LogMessage **msgs,
   return rc;
 }
 
+static inline gboolean
+_filter_match_eval_trivial_template(FilterExprNode *s, LogMessage **msgs, gint num_msg)
+{
+  FilterMatch *self = (FilterMatch *) s;
+  return filter_match_eval_against_trivial_template(self, msgs, num_msg);
+}
+
+static inline gboolean
+_filter_match_eval_template(FilterExprNode *s, LogMessage **msgs, gint num_msg)
+{
+  FilterMatch *self = (FilterMatch *) s;
+  return filter_match_eval_against_template(self, msgs, num_msg);
+}
+
+static inline gboolean
+_filter_match_eval_legacy(FilterExprNode *s, LogMessage **msgs, gint num_msg)
+{
+  FilterMatch *self = (FilterMatch *) s;
+  return filter_match_eval_against_program_pid_msg(self, msgs, num_msg);
+}
+
 static gboolean
 filter_match_eval(FilterExprNode *s, LogMessage **msgs, gint num_msg)
 {
   FilterMatch *self = (FilterMatch *) s;
 
-  if (G_LIKELY(self->super.value_handle))
-    return filter_re_eval(s, msgs, num_msg);
+  if (self->super.value_handle)
+    self->super.super.eval = filter_re_eval;
   else if (self->template && log_template_is_trivial(self->template))
-    return filter_match_eval_against_trivial_template(self, msgs, num_msg);
+    self->super.super.eval = _filter_match_eval_trivial_template;
   else if (self->template)
-    return filter_match_eval_against_template(self, msgs, num_msg);
+    self->super.super.eval = _filter_match_eval_template;
   else
-    return filter_match_eval_against_program_pid_msg(self, msgs, num_msg);
+    self->super.super.eval = _filter_match_eval_legacy;
+
+  return self->super.super.eval(s, msgs, num_msg);
 }
 
 static void

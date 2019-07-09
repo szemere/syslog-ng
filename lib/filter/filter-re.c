@@ -126,7 +126,7 @@ filter_re_init_instance(FilterRE *self, NVHandle value_handle)
   self->super.type = g_strdup("regexp");
 
   gssize length;
-  gchar *temp = log_msg_get_handle_name(value_handle, &length);
+  const gchar *temp = log_msg_get_handle_name(value_handle, &length);
   self->super.template = g_strndup(temp, length);
 
   log_matcher_options_defaults(&self->matcher_options);

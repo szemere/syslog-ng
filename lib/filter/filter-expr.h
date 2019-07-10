@@ -46,11 +46,24 @@ struct _FilterExprNode
   gboolean (*init)(FilterExprNode *self, GlobalConfig *cfg);
   gboolean (*eval)(FilterExprNode *self, LogMessage **msg, gint num_msg);
   void (*traversal)(FilterExprNode *self, FilterExprNode *parent, FilterExprNodeTraversalCallbackFunction func, gpointer cookie);
+  void (*replace_child)(FilterExprNode *self, FilterExprNode *old, FilterExprNode *new);
   void (*free_fn)(FilterExprNode *self);
   StatsCounterItem *matched;
   StatsCounterItem *not_matched;
 };
 
+
+static inline void
+filter_expr_replace_child(FilterExprNode *self, FilterExprNode *old, FilterExprNode *new)
+{
+  if (self->replace_child)
+    self->replace_child(self, old, new);
+  else
+    {
+      msg_error("Missing implementation!");
+      g_assert_not_reached();
+    }
+}
 
 static inline void
 filter_expr_traversal(FilterExprNode *self, FilterExprNode *parent, FilterExprNodeTraversalCallbackFunction func, gpointer cookie)

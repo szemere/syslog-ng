@@ -105,7 +105,6 @@ static gboolean
 filter_call_direct_init(FilterExprNode *s, GlobalConfig *cfg)
 {
   FilterCall *self = (FilterCall *) s;
-  LogExprNode *rule;
 
   if (self->visited)
     {

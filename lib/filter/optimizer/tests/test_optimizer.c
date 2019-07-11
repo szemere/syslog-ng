@@ -156,6 +156,19 @@ Test(replace_optimizer, simple_negated_filter)
   app_shutdown();
 }
 
+Test(replace_optimizer, complex_filter)
+{
+  app_startup();
+  FilterExprNode *expr = _compile_standalone_filter("level(info) or (program('foo') and not message('blaze'));");
+
+  FilterExprNode *result = filter_expr_optimizer_run(expr,  &always_replace_with_dummy_filter);
+
+  cr_assert(result);
+  cr_assert_eq(result->type, "dummy");
+
+  app_shutdown();
+}
+
 
 Test(filter_optimizer, no_optimize)
 {

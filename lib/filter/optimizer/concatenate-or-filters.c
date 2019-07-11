@@ -91,6 +91,8 @@ _concatenate_or_filters_cb(FilterExprNode *current, FilterExprNode *parent, GPtr
 
   if (_can_we_concatenate(current, left, right))
     {
+      g_list_remove_link(*stack, g_list_last(*stack)); //left
+      g_list_remove_link(*stack, g_list_last(*stack)); //right
       *stack = g_list_append(*stack, _concatenate(current, parent, left, right));
     }
   else

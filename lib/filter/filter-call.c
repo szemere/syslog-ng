@@ -140,7 +140,6 @@ filter_call_free(FilterExprNode *s)
   stats_unregister_counter(&sc_key, SC_TYPE_NOT_MATCHED, &self->super.not_matched);
   stats_unlock();
 
-  g_free((gchar *) self->super.type);
   g_free(self->rule);
 }
 

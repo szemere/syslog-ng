@@ -67,7 +67,7 @@ filter_facility_new(guint32 facilities)
   self->valid = facilities;
   self->super.type = g_strdup("facility");
   self->super.pattern = "slkfj"; //TODO: 
-  self->super.template = g_strdup("$FACILITY");
+  self->super.template = g_strdup("FACILITY");
   return &self->super;
 }
 
@@ -99,6 +99,6 @@ filter_level_new(guint32 levels)
   self->valid = levels;
   self->super.type = g_strdup("level");
   self->super.pattern = "slkfj"; //TODO: 
-  self->super.template = g_strdup("$LEVEL");
+  self->super.template = g_strdup("LEVEL");
   return &self->super;
 }

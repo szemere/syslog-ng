@@ -96,6 +96,17 @@ Test(filter_optimizer, simple_filter)
   app_shutdown();
 }
 
+Test(filter_optimizer, simple_negated_filter)
+{
+  app_startup();
+  FilterExprNode *expr = _compile_standalone_filter("not program('foo');");
+
+  cr_assert(filter_expr_optimizer_run(expr,  &dummy));
+  cr_assert_eq(counter, 3, "%d==%d", counter, 3);
+
+  app_shutdown();
+}
+
 Test(filter_optimizer, multiple_filter_expr)
 {
   app_startup();
@@ -103,6 +114,17 @@ Test(filter_optimizer, multiple_filter_expr)
 
   cr_assert(filter_expr_optimizer_run(expr,  &dummy));
   cr_assert_eq(counter, 5);
+
+  app_shutdown();
+}
+
+Test(filter_optimizer, complex_filte)
+{
+  app_startup();
+  FilterExprNode *expr = _compile_standalone_filter("level(info) or (program('foo') and not message('blaze'));");
+
+  cr_assert(filter_expr_optimizer_run(expr,  &dummy));
+  cr_assert_eq(counter, 7);
 
   app_shutdown();
 }

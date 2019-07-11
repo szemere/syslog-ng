@@ -63,6 +63,7 @@ static CfgLexerKeyword filter_expr_keywords[] =
 
   { "value",              KW_VALUE },
   { "flags",              KW_FLAGS },
+  { "type",              KW_TYPE },
 
   { NULL }
 };

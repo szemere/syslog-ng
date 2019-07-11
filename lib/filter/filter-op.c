@@ -23,12 +23,6 @@
  */
 #include "filter-op.h"
 
-typedef struct _FilterOp
-{
-  FilterExprNode super;
-  FilterExprNode *left, *right;
-} FilterOp;
-
 static gboolean
 fop_init(FilterExprNode *s, GlobalConfig *cfg)
 {

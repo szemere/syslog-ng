@@ -25,14 +25,6 @@
 #include "cfg.h"
 #include "filter-pipe.h"
 
-typedef struct _FilterCall
-{
-  FilterExprNode super;
-  FilterExprNode *filter_expr;
-  gchar *rule;
-  gboolean visited; /* Used for filter call loop detection */
-} FilterCall;
-
 static gboolean
 filter_call_eval(FilterExprNode *s, LogMessage **msgs, gint num_msg)
 {

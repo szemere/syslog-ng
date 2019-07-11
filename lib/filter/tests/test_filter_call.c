@@ -23,6 +23,7 @@
  */
 #include "filter/filter-call.h"
 #include "filter/filter-expr.h"
+#include "filter/filter-pri.h"
 #include "apphook.h"
 
 #include <criterion/criterion.h>
@@ -47,7 +48,6 @@ Test(filter_call, replace_existing_child)
 
   cr_assert_eq(filter_call_next(filter), old, "Old calle not registered properly.");
   filter_expr_replace_child(filter, old, new);
-
   cr_assert_eq(filter_call_next(filter), new, "Filter call didn't replace the child element.");
 
   filter_expr_unref(old);

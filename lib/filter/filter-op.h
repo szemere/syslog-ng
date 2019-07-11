@@ -27,6 +27,12 @@
 
 #include "filter-expr.h"
 
+typedef struct _FilterOp
+{
+  FilterExprNode super;
+  FilterExprNode *left, *right;
+} FilterOp;
+
 FilterExprNode *fop_or_new(FilterExprNode *e1, FilterExprNode *e2);
 FilterExprNode *fop_and_new(FilterExprNode *e1, FilterExprNode *e2);
 

@@ -27,6 +27,14 @@
 
 #include "filter-expr.h"
 
+typedef struct _FilterCall
+{
+  FilterExprNode super;
+  FilterExprNode *filter_expr;
+  gchar *rule;
+  gboolean visited; /* Used for filter call loop detection */
+} FilterCall;
+
 FilterExprNode *filter_call_new(gchar *rule, struct _GlobalConfig *cfg);
 
 FilterExprNode *filter_call_direct_new(FilterExprNode *s);

@@ -85,7 +85,7 @@ static FilterExprNode* _compile_standalone_filter(gchar *config_snippet)
 }
 
 
-Test(filter_optimizer, dummy_optimizer)
+Test(filter_optimizer, simple_filter)
 {
   app_startup();
   FilterExprNode *expr = _compile_standalone_filter("program('foo');");

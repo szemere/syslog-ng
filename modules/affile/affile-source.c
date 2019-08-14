@@ -180,7 +180,7 @@ _myPerist()
     }
 
   persist_state_commit(mypersist);
-
+  persist_state_free(mypersist);
 
   msg_warning("end of myPersist");
 }

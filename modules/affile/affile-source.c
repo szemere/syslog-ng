@@ -37,6 +37,7 @@
 
 #include <iv.h>
 
+#include "persist-state.h"
 
 static gboolean
 _is_linux_proc_kmsg(const gchar *filename)
@@ -94,9 +95,101 @@ _are_multi_line_settings_invalid(AFFileSourceDriver *self)
                                                    || multi_line_options->garbage);
 }
 
+typedef struct _MyPeristState
+{
+  PersistableStateHeader header;
+  guint32 inc;
+  guint32 desc;
+} MyPersistState;
+
+
+static void
+_handle_and_print(PersistState *state, PersistEntryHandle *handle, gboolean FirstRun)
+{
+  MyPersistState *mystate;
+  guint32 tmp;
+
+  msg_warning("Mapping persist entry");
+  mystate = persist_state_map_entry(state, *handle);
+  if (FirstRun)
+    {
+      mystate->inc = 0;
+      mystate->desc = G_MAXUINT32;
+    }
+  else
+    {
+      tmp = mystate->inc;
+      mystate->inc = tmp+1;
+
+      tmp = mystate->desc;
+      mystate->desc = tmp-1;
+    }
+  msg_warning("unmapping persist entry");
+  persist_state_unmap_entry(state, *handle);
+
+  msg_warning("Handle and print",
+    evt_tag_printf("inc",  "%"G_GUINT32_FORMAT, mystate->inc),
+    evt_tag_printf("desc", "%"G_GUINT32_FORMAT, mystate->desc),
+    evt_tag_int("first_run", FirstRun)
+  );
+}
+
+static void
+_myPerist()
+{
+  gchar *myKey = "myKey";
+  gsize length;
+  guint8 version;
+  PersistState *mypersist;
+  PersistEntryHandle handle;
+
+  msg_warning("Creating persist file");
+  mypersist = persist_state_new("/install/mypersist.persist");
+
+  persist_state_start(mypersist);
+
+  if (!mypersist)
+    msg_warning("couldn't create persist file");
+
+  handle = persist_state_lookup_entry(mypersist, myKey, &length, &version);
+  if (handle == 0)
+    {
+      msg_warning("There is no such entry. Creating a new one.");
+      handle = persist_state_alloc_entry(mypersist, myKey, sizeof(MyPersistState));
+
+      if (!handle)
+        {
+          msg_warning("Couldn't create a new one.");
+          return;
+        }
+      else
+        {
+          msg_warning("Created a new one.");
+        }
+
+      _handle_and_print(mypersist, &handle, TRUE);
+    }
+  else
+    {
+      msg_warning("Found persist entry.",
+        evt_tag_printf("length", "%"G_GSSIZE_FORMAT, length),
+        evt_tag_printf("version", "%d", version)
+      );
+
+      _handle_and_print(mypersist, &handle, FALSE);
+    }
+
+  persist_state_commit(mypersist);
+
+
+  msg_warning("end of myPersist");
+}
+
 static gboolean
 affile_sd_init(LogPipe *s)
 {
+  _myPerist();
+
   AFFileSourceDriver *self = (AFFileSourceDriver *) s;
   GlobalConfig *cfg = log_pipe_get_config(s);
 

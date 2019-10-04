@@ -222,7 +222,7 @@ struct _LogPipe
   LogExprNode *expr_node;
   LogPipe *pipe_next;
   StatsCounterItem *discarded_messages;
-  const gchar *persist_name;
+  gchar *persist_name;
   gchar *plugin_name;
 
   gboolean (*pre_init)(LogPipe *self);

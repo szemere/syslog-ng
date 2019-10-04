@@ -112,8 +112,10 @@ static gboolean
 _validate_mandatory_options(CfgArgs *arg_defs, CfgArgs *args, const gchar *reference)
 {
   gboolean missing_parameter_found = FALSE;
-  gpointer validate_params[] = { args, (gchar *)reference, &missing_parameter_found };
+  gchar *reference_copy = g_strdup(reference);
+  gpointer validate_params[] = { args, reference_copy, &missing_parameter_found };
   cfg_args_foreach(arg_defs, _validate_mandatory_options_callback, validate_params);
+  g_free(reference_copy);
 
   if (missing_parameter_found)
     return FALSE;
@@ -125,9 +127,11 @@ gboolean
 _validate_spurious_args(CfgArgs *self, CfgArgs *defs, const gchar *reference)
 {
   gboolean problem_found = FALSE;
-  gpointer validate_params[] = { defs, (gchar *) reference, &problem_found };
+  gchar *reference_copy = g_strdup(reference);
+  gpointer validate_params[] = { defs, reference_copy, &problem_found };
 
   cfg_args_foreach(self, _validate_args_callback, validate_params);
+  g_free(reference_copy);
 
   if (problem_found)
     return FALSE;

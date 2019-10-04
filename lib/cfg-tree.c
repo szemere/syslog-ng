@@ -1208,8 +1208,8 @@ cfg_tree_compile_rule(CfgTree *self, LogExprNode *rule)
 static gboolean
 cfg_tree_objects_equal(gconstpointer v1, gconstpointer v2)
 {
-  LogExprNode *r1 = (LogExprNode *) v1;
-  LogExprNode *r2 = (LogExprNode *) v2;
+  const LogExprNode *r1 = (const LogExprNode *) v1;
+  const LogExprNode *r2 = (const LogExprNode *) v2;
 
   if (r1->content != r2->content)
     return FALSE;
@@ -1222,7 +1222,7 @@ cfg_tree_objects_equal(gconstpointer v1, gconstpointer v2)
 static guint
 cfg_tree_objects_hash(gconstpointer v)
 {
-  LogExprNode *r = (LogExprNode *) v;
+  const LogExprNode *r = (const LogExprNode *) v;
 
   /* we assume that only rules with a name are hashed */
   return r->content + g_str_hash(r->name);
@@ -1337,7 +1337,7 @@ cfg_tree_compile(CfgTree *self)
 static gboolean
 _verify_unique_persist_names_among_pipes(const GPtrArray *initialized_pipes)
 {
-  GHashTable *pipe_persist_names = g_hash_table_new(g_str_hash, g_str_equal);
+  GHashTable *pipe_persist_names = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free);
   gboolean result = TRUE;
 
   for (gint i = 0; i < initialized_pipes->len; ++i)
@@ -1358,8 +1358,8 @@ _verify_unique_persist_names_among_pipes(const GPtrArray *initialized_pipes)
           else
             {
               g_hash_table_replace(pipe_persist_names,
-                                   (gpointer)current_pipe_name,
-                                   (gpointer)current_pipe_name);
+                                   g_strdup(current_pipe_name),
+                                   g_strdup(current_pipe_name));
             }
         }
     }

@@ -80,7 +80,7 @@ struct __evtcontext
   char *(*ec_formatter_fn)(EVTREC *e);
   char ec_outmethod[32];
   int (*ec_outmethod_fn)(EVTREC *e);
-  char *ec_prog;
+  const char *ec_prog;
   int ec_syslog_fac;
   EVTTAGHOOK *ec_tag_hooks;
   unsigned long ec_flags;

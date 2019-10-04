@@ -350,6 +350,7 @@ if (ENABLE_EXTRA_WARNINGS)
     -Wpointer-sign
     -Wmissing-format-attribute
     -Wold-style-definition
+    -Wcast-qual
     -Wundef)
 
 if ("${CMAKE_C_COMPILER_ID}" MATCHES "Clang")

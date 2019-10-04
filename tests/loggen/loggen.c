@@ -486,12 +486,12 @@ main(int argc, char *argv[])
 
   if (argc>=3)
     {
-      global_plugin_option.target = g_strdup(argv[1]);
-      global_plugin_option.port = g_strdup(argv[2]);
+      global_plugin_option.target = argv[1];
+      global_plugin_option.port = argv[2];
     }
   else if (argc>=2)
     {
-      global_plugin_option.target = g_strdup(argv[1]);
+      global_plugin_option.target = argv[1];
       global_plugin_option.port = NULL;
     }
   else
@@ -532,8 +532,8 @@ main(int argc, char *argv[])
 
   if (message_counter_lock)
     g_mutex_free(message_counter_lock);
-  g_free((gpointer)global_plugin_option.target);
-  g_free((gpointer)global_plugin_option.port);
+  //g_free((gpointer)global_plugin_option.target);
+  //g_free((gpointer)global_plugin_option.port);
   g_ptr_array_free(plugin_array,TRUE);
   g_free(thread_stat_count_last);
   g_free(thread_stat_count);

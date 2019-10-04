@@ -83,6 +83,7 @@ AM_CFLAGS += \
 	-Wpointer-sign \
 	-Wmissing-format-attribute \
 	-Wold-style-definition \
+	-Wcast-qual
 	-Wundef
 endif
 

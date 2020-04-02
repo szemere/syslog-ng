@@ -87,8 +87,8 @@ _string_contains_fragment(const gchar *str, const gchar *fragments[])
   return FALSE;
 }
 
-static inline gboolean
-_is_path_spurious(const gchar *name)
+gboolean
+is_path_spurious(const gchar *name)
 {
   return _string_contains_fragment(name, spurious_paths);
 }
@@ -147,7 +147,7 @@ file_opener_open_fd(FileOpener *self, const gchar *name, FileDirection dir, gint
 {
   cap_t saved_caps;
 
-  if (_is_path_spurious(name))
+  if (is_path_spurious(name))
     {
       msg_error("Spurious path, logfile not created",
                 evt_tag_str("path", name));

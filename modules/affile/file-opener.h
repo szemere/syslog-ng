@@ -60,6 +60,8 @@ struct _FileOpener
   LogProtoClient *(*construct_dst_proto)(FileOpener *self, LogTransport *transport, LogProtoClientOptions *proto_options);
 };
 
+gboolean is_path_spurious(const gchar *name);
+
 static inline LogTransport *
 file_opener_construct_transport(FileOpener *self, gint fd)
 {

@@ -704,6 +704,16 @@ _affile_dd_create_writer_from_template(AFFileDestDriver *self, LogMessage *msg)
   filename = g_string_sized_new(32);
   log_template_format(self->filename_template, msg, &self->writer_options.template_options, LTZ_LOCAL, 0, NULL, filename);
 
+  if (is_path_spurious(filename->str))
+    {
+      msg_error("Evaluation of the filename template resulted in a dangerous file path. "
+               "File not created. Relevant message will be dropped.",
+               evt_tag_str("template", self->filename_template->template),
+               evt_tag_str("filename", filename->str));
+      g_string_free(filename, TRUE);
+      return NULL;
+    }
+
   g_static_mutex_lock(&self->lock);
   if (self->writer_hash)
     next = g_hash_table_lookup(self->writer_hash, filename->str);

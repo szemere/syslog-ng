@@ -670,7 +670,7 @@ affile_dd_open_writer(gpointer args[])
 static AFFileDestWriter *
 _affile_dd_create_single_writer(AFFileDestDriver *self)
 {
-  AFFileDestWriter *next;
+  AFFileDestWriter *writer;
   gpointer args[2] = { self, NULL };
 
   /* we need to lock single_writer in order to get a reference and
@@ -680,23 +680,23 @@ _affile_dd_create_single_writer(AFFileDestDriver *self)
   if (!self->single_writer)
     {
       g_static_mutex_unlock(&self->lock);
-      next = main_loop_call((void *(*)(void *)) affile_dd_open_writer, args, TRUE);
+      writer = main_loop_call((void *(*)(void *)) affile_dd_open_writer, args, TRUE);
     }
   else
     {
-      next = self->single_writer;
-      next->queue_pending = TRUE;
-      log_pipe_ref(&next->super);
+      writer = self->single_writer;
+      writer->queue_pending = TRUE;
+      log_pipe_ref(&writer->super);
       g_static_mutex_unlock(&self->lock);
     }
 
-  return next;
+  return writer;
 }
 
 static AFFileDestWriter *
 _affile_dd_create_writer_from_template(AFFileDestDriver *self, LogMessage *msg)
 {
-  AFFileDestWriter *next;
+  AFFileDestWriter *writer = NULL;
   gpointer args[2] = { self, NULL };
 
   GString *filename;
@@ -716,25 +716,23 @@ _affile_dd_create_writer_from_template(AFFileDestDriver *self, LogMessage *msg)
 
   g_static_mutex_lock(&self->lock);
   if (self->writer_hash)
-    next = g_hash_table_lookup(self->writer_hash, filename->str);
-  else
-    next = NULL;
+    writer = g_hash_table_lookup(self->writer_hash, filename->str);
 
-  if (next)
+  if (writer)
     {
-      log_pipe_ref(&next->super);
-      next->queue_pending = TRUE;
+      log_pipe_ref(&writer->super);
+      writer->queue_pending = TRUE;
       g_static_mutex_unlock(&self->lock);
     }
   else
     {
       g_static_mutex_unlock(&self->lock);
       args[1] = filename;
-      next = main_loop_call((void *(*)(void *)) affile_dd_open_writer, args, TRUE);
+      writer = main_loop_call((void *(*)(void *)) affile_dd_open_writer, args, TRUE);
     }
   g_string_free(filename, TRUE);
 
-  return next;
+  return writer;
 }
 
 static AFFileDestWriter *

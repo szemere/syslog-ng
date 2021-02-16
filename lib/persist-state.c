@@ -37,7 +37,7 @@
 
 #define PERSIST_FILE_INITIAL_SIZE 16384
 #define PERSIST_STATE_KEY_BLOCK_SIZE 4096
-#define PERSIST_FILE_WATERMARK 4096
+//#define PERSIST_FILE_WATERMARK 4096
 
 /*
  * The syslog-ng persistent state is a set of name-value pairs,
@@ -206,11 +206,11 @@ _commit_store(PersistState *self)
   return rename(self->temp_filename, self->committed_filename) >= 0;
 }
 
-static gboolean
-_check_watermark(PersistState *self)
-{
-  return (self->current_ofs + PERSIST_FILE_WATERMARK < self->current_size);
-}
+// static gboolean
+// _check_watermark(PersistState *self)
+// {
+//   return (self->current_ofs + PERSIST_FILE_WATERMARK < self->current_size);
+// }
 
 static inline gboolean
 _check_free_space(PersistState *self, guint32 size)
@@ -240,8 +240,18 @@ _alloc_value(PersistState *self, guint32 orig_size, gboolean in_use, guint8 vers
 
   if (!_check_free_space(self, size))
     {
-      msg_error("No more free space exhausted in persist file");
-      return 0;
+      msg_notice("No more free space exhausted in persist file, trying to increment it's size.");
+
+      if (!_grow_store(self, self->current_size + size)) // grow store has a internal logic to round up the size to pagesizes.
+        {
+
+          msg_error("Can't preallocate space for persist file",
+                    evt_tag_int("current", self->current_size),
+                    evt_tag_int("new_size", self->current_size + PERSIST_FILE_INITIAL_SIZE));
+          persist_state_run_error_handler(self);
+
+          return 0;
+        }
     }
 
   result = self->current_ofs + sizeof(PersistValueHeader);
@@ -255,13 +265,13 @@ _alloc_value(PersistState *self, guint32 orig_size, gboolean in_use, guint8 vers
 
   self->current_ofs += size + sizeof(PersistValueHeader);
 
-  if (!_check_watermark(self) && !_grow_store(self, self->current_size + PERSIST_FILE_INITIAL_SIZE))
-    {
-      msg_error("Can't preallocate space for persist file",
-                evt_tag_int("current", self->current_size),
-                evt_tag_int("new_size", self->current_size + PERSIST_FILE_INITIAL_SIZE));
-      persist_state_run_error_handler(self);
-    }
+  // if (!_check_watermark(self) && !_grow_store(self, self->current_size + PERSIST_FILE_INITIAL_SIZE))
+  //   {
+  //     msg_error("Can't preallocate space for persist file",
+  //               evt_tag_int("current", self->current_size),
+  //               evt_tag_int("new_size", self->current_size + PERSIST_FILE_INITIAL_SIZE));
+  //     persist_state_run_error_handler(self);
+  //   }
 
   return result;
 }

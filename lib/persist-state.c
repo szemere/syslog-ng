@@ -35,10 +35,6 @@
 #include <string.h>
 #include <signal.h>
 
-#define PERSIST_FILE_INITIAL_SIZE 16384
-#define PERSIST_STATE_KEY_BLOCK_SIZE 4096
-#define PERSIST_FILE_WATERMARK 4096
-
 /*
  * The syslog-ng persistent state is a set of name-value pairs,
  * updated atomically during syslog-ng runtime. When syslog-ng
@@ -107,14 +103,7 @@
  *
  */
 
-/* everything is big-endian */
-typedef struct _PersistValueHeader
-{
-  guint32 size;
-  guint8 in_use;
-  guint8 version;
-  guint16 __padding;
-} PersistValueHeader;
+
 
 /* lowest layer, "store" functions manage the file on disk */
 

@@ -40,7 +40,10 @@
 typedef struct _TestState
 {
   guint32 value;
+  gchar buffer[10000];
 } TestState;
+
+PERSIST_STATE_SIZE_STATIC_ASSERT(TestState);
 
 static void
 _write_test_file_for_test_in_use_handle(gboolean in_use_handle, const gchar *filename)

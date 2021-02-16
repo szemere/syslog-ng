@@ -87,6 +87,27 @@ struct _PersistState
 
 typedef struct _PersistState PersistState;
 
+#define PERSIST_FILE_INITIAL_SIZE 16384
+#define PERSIST_STATE_KEY_BLOCK_SIZE 4096
+#define PERSIST_FILE_WATERMARK 8192+256
+
+/* everything is big-endian */
+typedef struct _PersistValueHeader
+{
+  guint32 size;
+  guint8 in_use;
+  guint8 version;
+  guint16 __padding;
+} PersistValueHeader;
+
+
+#define ROUNDUP(x) ( x & 0x7 ? ((x>>3)+1)<<3 : x)
+
+/* Struct size is too big, either decrease the struct size or increase PERSIST_FILE_WATERMARK.
+   "In that case you might have to increase PERSIST_FILE_INITIAL_SIZE (a.k.a. allocation size) too. */
+#define PERSIST_STATE_SIZE_STATIC_ASSERT(TYPE) G_STATIC_ASSERT( ROUNDUP(sizeof(TYPE)) + sizeof(PersistValueHeader) < PERSIST_FILE_WATERMARK)
+
+
 gpointer persist_state_map_entry(PersistState *self, PersistEntryHandle handle);
 void persist_state_unmap_entry(PersistState *self, PersistEntryHandle handle);
 

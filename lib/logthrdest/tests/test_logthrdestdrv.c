@@ -656,8 +656,25 @@ Test(logthrdestdrv, batch_timeout_delays_flush_to_the_specified_interval)
   cr_assert(dd->flush_counter == 1);
 }
 
+static inline gboolean
+_timeout_flush_counter_waiter(gint expected)
+{
+  for (gint i = 0; i < 100; i++)
+    {
+      _sleep_msec(100);
+      printf("Micek: elapsed: %d\n", i*100);
+      if (dd->flush_counter >= expected)
+        return TRUE;
+    }
+
+  return FALSE;
+}
+
 Test(logthrdestdrv, batch_timeout_limits_flush_frequency)
 {
+  start_grabbing_messages();
+  trace_flag = TRUE;
+
   /* 3 messages per second, we need to set this explicitly on the queue as it has already been initialized */
   dd->super.worker.insert = _insert_batched_message_success;
   dd->super.worker.flush = _flush_batched_message_success;
@@ -667,6 +684,9 @@ Test(logthrdestdrv, batch_timeout_limits_flush_frequency)
   for (gint i = 0; i < 5; i++)
     {
       gint flush_counter;
+
+      printf("Micek: Ciklus: %d\n", i);
+      reset_grabbed_messages();
 
       start_stopwatch();
       _generate_messages(dd, 2);
@@ -688,10 +708,19 @@ Test(logthrdestdrv, batch_timeout_limits_flush_frequency)
                 dd->flush_counter, i, initial_feed_time);
 
       /* force batch_timeout() to elapse, give some time to the thread to flush */
-      _sleep_msec(1200);
-      cr_assert(dd->flush_counter == i + 1,
-                "The flush time has now been forcibly spent, but the flush has not happened as expected."
-                "flush_counter=%d, expected %d", dd->flush_counter, i + 1);
+      //_sleep_msec(1200);
+      // cr_assert(dd->flush_counter == i + 1,
+      //           "The flush time has now been forcibly spent, but the flush has not happened as expected."
+      //           "flush_counter=%d, expected %d", dd->flush_counter, i + 1);
+      gboolean wait_result = _timeout_flush_counter_waiter(i+1);
+      if (!wait_result)
+        {
+          display_grabbed_messages();
+          cr_assert(dd->flush_counter == i + 1,
+                    "The flush time has now been forcibly spent, but the flush has not happened as expected."
+                    "flush_counter=%d, expected %d", dd->flush_counter, i + 1);
+        }
+
     }
   cr_assert(dd->flush_size == 10);
 }

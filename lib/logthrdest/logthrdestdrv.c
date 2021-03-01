@@ -780,7 +780,7 @@ gboolean
 log_threaded_dest_worker_init_method(LogThreadedDestWorker *self)
 {
   if (self->time_reopen == -1)
-    self->time_reopen = self->owner->time_reopen;
+    self->time_reopen = self->owner->time_reopen != -1 ? self->owner->time_reopen : 60;
 
   _register_worker_stats(self);
 
@@ -1062,7 +1062,7 @@ log_threaded_dest_driver_init_method(LogPipe *s)
   self->under_termination = FALSE;
 
   if (cfg && self->time_reopen == -1)
-    self->time_reopen = cfg->time_reopen;
+    self->time_reopen = cfg->time_reopen != -1 ? cfg->time_reopen : 60;
 
   self->shared_seq_num = GPOINTER_TO_INT(cfg_persist_config_fetch(cfg,
                                          _format_seqnum_persist_name(self)));

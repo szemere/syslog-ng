@@ -487,7 +487,7 @@ cfg_new(gint version)
   self->mark_freq = 1200; /* 20 minutes */
   self->mark_mode = MM_HOST_IDLE;
   self->chain_hostnames = 0;
-  self->time_reopen = 60;
+  self->time_reopen = -1;
   self->time_reap = 60;
 
   self->log_fifo_size = 10000;

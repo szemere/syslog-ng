@@ -142,7 +142,7 @@ affile_dw_reopen(AFFileDestWriter *self)
 
   cfg = log_pipe_get_config(&self->super);
   if (cfg)
-    self->time_reopen = cfg->time_reopen;
+    self->time_reopen = cfg->time_reopen != -1 ? cfg->time_reopen : 60;
 
   msg_verbose("Initializing destination file writer",
               evt_tag_str("template", self->owner->filename_template->template),

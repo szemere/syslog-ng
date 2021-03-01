@@ -153,7 +153,7 @@ _suspend_output(PseudoFileDestDriver *self, time_t now)
 {
   GlobalConfig *cfg = log_pipe_get_config(&self->super.super.super);
 
-  self->suspend_until = now + cfg->time_reopen;
+  self->suspend_until = now + cfg->time_reopen != -1 ? cfg->time_reopen : 60;
 }
 
 static void

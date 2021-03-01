@@ -552,7 +552,7 @@ afsocket_dd_setup_connection(AFSocketDestDriver *self)
 {
   GlobalConfig *cfg = log_pipe_get_config(&self->super.super.super);
 
-  self->time_reopen = cfg->time_reopen;
+  self->time_reopen = cfg->time_reopen != -1 ? cfg->time_reopen : 60;
 
   if (!log_writer_opened(self->writer))
     _dd_reconnect_with_current_addresses(self);
@@ -735,7 +735,7 @@ afsocket_dd_init_instance(AFSocketDestDriver *self,
   self->socket_options = socket_options;
   self->connections_kept_alive_across_reloads = TRUE;
   self->close_on_input = TRUE;
-  self->time_reopen = cfg->time_reopen;
+  self->time_reopen = cfg->time_reopen != -1 ? cfg->time_reopen : 60;
   self->connection_initialized = FALSE;
 
 

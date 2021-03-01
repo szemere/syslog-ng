@@ -1793,7 +1793,7 @@ log_writer_options_init(LogWriterOptions *options, GlobalConfig *cfg, guint32 op
   if (options->suppress == -1)
     options->suppress = cfg->suppress;
   if (options->time_reopen == -1)
-    options->time_reopen = cfg->time_reopen;
+    options->time_reopen = cfg->time_reopen != -1 ? cfg->time_reopen : 60;
   options->file_template = log_template_ref(cfg->file_template);
   options->proto_template = log_template_ref(cfg->proto_template);
   if (cfg->threaded)
